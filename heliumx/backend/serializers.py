@@ -1,42 +1,55 @@
-# from rest_framework import serializers
-# from .models import User
+from dataclasses import fields
+from rest_framework import serializers
+from .models import User, Sessions, Ticket
 
-# class RegisterSerializer(serializers.ModelSerializer):
-#     password = serializers.CharField(max_length = 30, min_length=6, write_only=True)
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password']
 
-#     class Meta:
-#         model = User
-#         fields = ['email', 'username', 'password']
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'duties']
 
-#     def validate(self, attrs):
-#         email = attrs.get('email', '')
-#         username = attrs.get('username', '')
-#         if not username.isalnum():
-#             raise serializers.ValidationError('The username should be alphanumeric characters')
-#         return attrs
-        
-#     def create(self, validated_data):
-#         return User.objects.create_user(**validated_data)
+class LoginSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=20, min_length=6, write_only=True)
+    class Meta:
+        model = User
+        fields = ['email', 'password']
 
-# class EmailVerification(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['otp', 'email']
+class AdminUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length = 64, min_length = 6, write_only = True)
+    duties = serializers.ChoiceField(choices=User.DUTIES)
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'mobile_number', 'duties']
 
-# class LoginSerializer(serializers.ModelSerializer):
-#     password = serializers.CharField(max_length=20, min_length=6, write_only=True)
-#     class Meta:
-#         model = User
-#         fields = ['email', 'password']
+class NewsLetter(serializers.Serializer):
+    title = serializers.CharField(max_length=70)
+    body = serializers.CharField()
+    class Meta:
+        model = User
+        fields = ['title', 'body']
 
-# class ForgetPasswordSerializer(serializers.ModelSerializer):
-#     email = serializers.EmailField(min_length=2)
-#     class Meta:
-#         model = User
-#         fields=['email']
+class SessionSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
+    class Meta:
+        model = Sessions
+        fields = ['users', 'session_date', 'is_booked', 'title']
 
-# class ResetPasswordSerializer(serializers.ModelSerializer):
-#     confrim_password = serializers.CharField(min_length=8)
-#     class Meta:
-#         model = User
-#         fields = ['confirm_password']
+class TicketSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
+    class Meta:
+        model = Ticket
+        fields = ['users', 'ticket_title', 'ticket_description']
+
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        mdoel = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'duties']
+
+class UserPlansSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'plans']
