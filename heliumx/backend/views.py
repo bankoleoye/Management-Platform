@@ -1,12 +1,12 @@
-# from django.shortcuts import render
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status, generics, permissions
-# from .serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer
-# from .models import User
-# from rest_framework.permissions import AllowAny
-# from django.contrib.auth import authenticate, logout
-# from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, generics, permissions
+from .serializers import RegisterSerializer, LoginSerializer, ResetPasswordSerializer
+from .models import User, Sessions, Ticket
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate, logout
+from django.core.exceptions import ObjectDoesNotExist
 
 
 # # Create your views here.

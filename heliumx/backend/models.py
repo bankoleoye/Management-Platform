@@ -41,6 +41,7 @@ class User(AbstractUser):
         ('Accountant', 'Accountant'),
         ('IT Support', 'IT Support'),
         ('Admin', 'Admin'),
+        ('CEO', 'CEO'),
     ) 
 
     PLANS = (
