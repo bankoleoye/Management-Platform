@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.base_user import BaseUserManager
 from django.utils import timezone
 
 
@@ -11,7 +12,8 @@ class UserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('Email must be set!')
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -48,7 +50,8 @@ class User(AbstractUser):
 
     duties = models.CharField(choices=DUTIES, max_length=29, default='user')
     plans = models.CharField(choices=PLANS, max_length= 29, default='basic')
-    email = models.EmailField(max_length=255, null=False, unique=True)
+    mobile_number = models.CharField(max_length=10, unique=True)
+    email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now=False, default=timezone.now)
@@ -62,9 +65,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-
-    def __str__(self):
-        return self.email
+    REQUIRED_FIELDS = []
 
 
 class Sessions(models.Model):
