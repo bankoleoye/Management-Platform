@@ -1,5 +1,3 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from heliumx.backend.permissions import IsCEO, IsCommunityManager, IsITSupport, IsAccountant
@@ -7,7 +5,6 @@ from .serializers import LoginSerializer, UserListSerializer, AdminUserSerialize
 from .models import User, Sessions, Ticket, Subscription, NewsLetter
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
-from .permissions import IsAuthenticated, IsCEO, IsCommunityManager
 from .utils import Util
 from .models import Sessions, Ticket, User
 from rest_framework.authtoken.models import Token 
@@ -78,7 +75,6 @@ class RegisterUsers(generics.GenericAPIView):
             except Exception as error:
                 return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UpdateUserByCommunityManager(generics.GenericAPIView):
     permissions_classes = [IsCommunityManager]
