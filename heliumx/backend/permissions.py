@@ -20,3 +20,4 @@ class IsAccountant(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return request.user.is_authenticated and user.duties == 'Accountant'
+        

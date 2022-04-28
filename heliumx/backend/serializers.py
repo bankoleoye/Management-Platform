@@ -22,7 +22,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
     duties = serializers.ChoiceField(choices=User.DUTIES)
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'mobile_number', 'duties']
+        fields = ['first_name', 'last_name', 'username', 'email', 'mobile_number', 'duties', 'password']
 
 class NewsLetterSerializer(serializers.ModelSerializer):
     title = serializers.CharField(max_length=70)
