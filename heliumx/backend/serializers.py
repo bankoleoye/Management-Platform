@@ -1,6 +1,5 @@
-from dataclasses import fields
 from rest_framework import serializers
-from .models import User, Sessions, Ticket
+from .models import User, Sessions, Ticket, Subscription, NewsLetter
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,24 +24,24 @@ class AdminUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'mobile_number', 'duties']
 
-class NewsLetter(serializers.Serializer):
+class NewsLetterSerializer(serializers.ModelSerializer):
     title = serializers.CharField(max_length=70)
-    body = serializers.CharField()
+    topic = serializers.CharField()
     class Meta:
-        model = User
-        fields = ['title', 'body']
+        model = NewsLetter
+        fields = ['title', 'topic']
 
 class SessionSerializer(serializers.ModelSerializer):
     users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
     class Meta:
         model = Sessions
-        fields = ['users', 'session_date', 'is_booked', 'title']
+        fields = ['users', 'date', 'is_booked', 'title']
 
 class TicketSerializer(serializers.ModelSerializer):
     users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
     class Meta:
         model = Ticket
-        fields = ['users', 'ticket_title', 'ticket_description']
+        fields = ['users', 'title', 'description']
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,4 +51,15 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 class UserPlansSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'plans']
+        fields = ['first_name', 'last_name', 'username', 'email', 'duties']
+        
+class SubscriptionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = "__all__"
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ['plans']
+        

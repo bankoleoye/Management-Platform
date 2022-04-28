@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils import timezone
 
 
 # Create your models here.
@@ -44,24 +43,14 @@ class User(AbstractUser):
         ('CEO', 'CEO'),
     ) 
 
-    PLANS = (
-        ('Basic', 'Basic'),
-        ('Premium', 'premium'),
-    )
 
     duties = models.CharField(choices=DUTIES, max_length=29, default='user')
-    plans = models.CharField(choices=PLANS, max_length= 29, default='basic')
-    mobile_number = models.CharField(max_length=10, unique=True)
+    mobile_number = models.CharField(max_length=10, unique=True, default=0)
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now=False, default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_admin = models.BooleanField(default=False)
-    is_IT_support = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    is_CEO = models.BooleanField(default=False)
-    is_accountant = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -71,21 +60,46 @@ class User(AbstractUser):
 
 class Sessions(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_title = models.CharField(max_length=70)
-    session_date = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=70)
+    date = models.DateTimeField(auto_now=True)
     booking_date = models.DateTimeField(auto_now_add=True)
     is_booked = models.BooleanField(default=False)
+    description = models.CharField(max_length=255, default=False)
 
     def __str__(self):
-        return self.session_title
+        return self.title
 
 
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    ticket_title = models.CharField(max_length=70)
-    ticket_description = models.TextField()
+    title = models.CharField(max_length=70)
+    description = models.CharField(max_length=255, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.ticket_title
+        return self.title
+
+class Subscription(models.Model):
+    PLANS = (
+        ('Basic', 'Basic'),
+        ('Premium', 'Prmium')
+    )
+
+    title = models.CharField(max_length=70)
+    package = models.CharField(max_length=70)
+    price = models.CharField(max_length=20)
+    plans = models.CharField(choices=PLANS, max_length= 29, default='basic')
+
+def __str__(self):
+    return self.title
+
+class NewsLetter(models.Model):
+    title = models.CharField(max_length=40)
+    topic = models.CharField(max_length=90)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.title
