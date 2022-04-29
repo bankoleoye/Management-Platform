@@ -41,12 +41,12 @@ class CeoUpdateUser(generics.GenericAPIView):
     serializer_class = AdminUserSerializer
 
     def get(self, request, pk):
-        user =User.objects.filter(pk-pk).first()
+        user =User.objects.filter(pk=pk).first()
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
-        user =User.objects.filter(pk-pk).first()
+        user =User.objects.filter(pk=pk).first()
         serializer = self.serializer_class(user, data =request.data, partial = True)
         if serializer.is_valid():
             serializer.save()
@@ -54,7 +54,7 @@ class CeoUpdateUser(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        user =User.objects.filter(pk-pk).first()
+        user =User.objects.filter(pk=pk).first()
         username = user.username
         user.delete()
         return Response({"success":f"{username} deleted successfully"}, status=status.HTTP_201_CREATED)
