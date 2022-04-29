@@ -1,12 +1,13 @@
+from django.forms import EmailInput
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
-from heliumx.backend.permissions import IsCEO, IsCommunityManager, IsITSupport, IsAccountant
-from .serializers import LoginSerializer, UserListSerializer, AdminUserSerializer, TicketSerializer, UserSerializer, SessionsSerializer, SubscriptionSerializer, SubscriptionListSerializer
+from .permissions import IsCEO, IsCommunityManager, IsITSupport, IsAccountant
+from .serializers import LoginSerializer, UserListSerializer, AdminUserSerializer, TicketSerializer, UserSerializer, SessionsSerializer, SubscriptionSerializer, SubscriptionListSerializer, NewsLetterSerializer
 from .models import User, Sessions, Ticket, Subscription, NewsLetter
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from .utils import Util
-from .models import Sessions, Ticket, User
+from .models import Sessions, Ticket, User, Subscription, NewsLetter
 from rest_framework.authtoken.models import Token 
 
 
@@ -23,8 +24,11 @@ class CeoRegisterUser(generics.GenericAPIView):
             mobile_number = serializer.validated_data['mobile_number']
             email = serializer.validated_data['email']
             duties = serializer.validated_data['duties']
+            password = serializer.validated_data['password']
             try:
                 user = User.objects.create(first_name=first_name, last_name=last_name, username=username, mobile_number=mobile_number, email=email, duties=duties)
+                user.set_password(password)
+                user.save()
                 return Response({"success":f"{username} created successfully"}, status=status.HTTP_201_CREATED)
             except Exception as err:
                 return Response({"error":err}, status = status.HTTP_400_BAD_REQUEST)
@@ -60,6 +64,7 @@ class RegisterUsers(generics.GenericAPIView):
     permissions_classes = [permissions.AllowAny]
     serializer_class = UserSerializer
     """Endpoint to register other users who are not staffs"""
+    
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -67,11 +72,20 @@ class RegisterUsers(generics.GenericAPIView):
             first_name =serializer.validated_data['first_name']
             last_name = serializer.validated_data['last_name']
             email = serializer.validated_data['email']
-            phone_number = serializer.validated_data['phone_number']
+            mobile_number = serializer.validated_data['mobile_number']
             password = serializer.validated_data['password']
             try:    
-                user = User.objects.create(username=username, first_name=first_name, last_name=last_name, email=email, phone_number=phone_number, password=password)
-                return Response({"success": f"{username} successfully created"}, status=status.HTTP_201_CREATED)
+                user = User.objects.create_user(
+                    username=username, 
+                    first_name=first_name,
+                    last_name=last_name, 
+                    email=email, 
+                    mobile_number=mobile_number,
+                    password=password
+                    )
+                user.set_password(password)
+                user.save()
+                return Response({"success":"successfully created"}, status=status.HTTP_201_CREATED)
             except Exception as error:
                 return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -116,18 +130,22 @@ class UpdateUserByCommunityManager(generics.GenericAPIView):
             return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
 
 class Login(generics.GenericAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
+
     def post(self, request):
         email = request.data.get('email', '')
         password = request.data.get('password', '')
-        if email is None or password is None:
-            return Response(errors={'invalid_credentials': 'please provide both email and password'}, status=status.HTTP_400_BAD_REQUEST)
-        user = authenticate(email=email, password=password)
-        if not user:
-            return Response(errors={'invalid_credentials': 'Ensure both email and password are correct and you have verified your account'}, status=status.HTTP_400_BAD_REQUEST)
-        token,_ = Token.objects.get_or_create(user=user)
-        return Response({"data":token.key, "username":user.username}, status=status.HTTP_200_OK)
+        try:
+            if email is None or password is None:
+                return Response({'invalid_credentials': 'please provide both email and password'}, status=status.HTTP_400_BAD_REQUEST)
+            user = authenticate(username=email, password=password)
+            if not user:
+                return Response({'invalid_credentials': 'Ensure both email and password are correct and you have verified your account'}, status=status.HTTP_400_BAD_REQUEST)
+            token,_ = Token.objects.get_or_create(user=user)
+            return Response({"data":token.key, "username":user.username}, status=status.HTTP_200_OK)
+        except Exception as err:
+            return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ViewAllUsers(generics.GenericAPIView):
@@ -137,19 +155,24 @@ class ViewAllUsers(generics.GenericAPIView):
 
 class SendNewsLetter(generics.GenericAPIView):
     permissions_classes = [IsCommunityManager]
-    serializer_class = NewsLetter
+    serializer_class = NewsLetterSerializer
     """Endpoint to send a newsletter to all users only accessible by Community Manager"""
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         get_all_users_emails = User.objects.all().values_list('email', flat=True)
         if serializer.is_valid():
             title = serializer.validated_data['title']
-            body = serializer.validated_data['body']
+            topic = serializer.validated_data['topic']
+            newsletter = NewsLetter.objects.create(
+                title = title,
+                topic = topic
+            )
+            newsletter.save()
             try:
                 for email in get_all_users_emails:
-                    email_body = f"{title} \n\n {body}"
-                    data = data = {'email_body': email_body, 'to_email': email, 'email_subject': title}
-                    Util.send_email(data)
+                    email_topic = f"{title} \n\n {topic}"
+                    data = data = {'email_topic': email_topic, 'to_email': email, 'email_subject': title}
+                    Util.send_mail(data)
                 return Response({"success": f"{title} successfully sent"}, status=status.HTTP_201_CREATED)
             except Exception as error:
                 return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
@@ -212,10 +235,10 @@ class CreateSession(generics.GenericAPIView):
             users = serializer.validated_data['users']
             title = serializer.validated_data['title']
             description = serializer.validated_data['description']
-            session_date = serializer.validated_data['session_date']
-            is_done = serializer.validated_data['is_done']
+            date = serializer.validated_data['date']
+            is_booked = serializer.validated_data['is_booked']
             try:
-                Sessions.objects.create(title=title, session_date=session_date, description=description, user=users[0], is_done=is_done)
+                Sessions.objects.create(title=title, date=date, description=description, user=users[0], is_booked=is_booked)
                 return Response({"success": f"A session has been created for {users}"}, status=status.HTTP_201_CREATED)
             except Exception as error:
                 return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
@@ -230,6 +253,7 @@ class UpdateSession(generics.GenericAPIView):
         get_sessions = Sessions.objects.all()
         serializer = SessionsSerializer(get_sessions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+        
     """Endpoint to update session progress"""
     def patch(self, request, pk):
         get_session = Sessions.objects.get(pk=pk)
