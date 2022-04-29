@@ -1,1 +1,1 @@
-web: gunicorn --heliumx backend heliumx.wsgi
+web: gunicorn -c 'cd ./heliumx/ && heliumx.wsgi'
