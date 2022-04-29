@@ -93,6 +93,7 @@ class Subscription(models.Model):
     package = models.CharField(max_length=70)
     price = models.CharField(max_length=20)
     plans = models.CharField(choices=PLANS, max_length= 29, default='basic')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
 def __str__(self):
     return self.title

@@ -62,5 +62,5 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ['plans']
+        fields = ['plans',]
         
