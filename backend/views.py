@@ -2,7 +2,7 @@ from django.forms import EmailInput
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from .permissions import IsCEO, IsCommunityManager, IsITSupport, IsAccountant
-from .serializers import LoginSerializer, UserListSerializer, AdminUserSerializer, TicketSerializer, UserSerializer, SessionsSerializer, SubscriptionSerializer, SubscriptionListSerializer, NewsLetterSerializer
+from .serializers import LoginSerializer, SubscriptionListSerializer, UserListSerializer, AdminUserSerializer, TicketSerializer, UserSerializer, SessionsSerializer, SubscriptionSerializer, NewsLetterSerializer
 from .models import User, Sessions, Ticket, Subscription, NewsLetter
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
@@ -187,9 +187,9 @@ class CreateSubscription(generics.GenericAPIView):
         user = request.user
         print(user)
         if serializer.is_valid():
-            subscription_type = serializer.validated_data['subscription_type']
+            plans = serializer.validated_data['plans']
             try:
-                Subscription.objects.create(subscription_type=subscription_type, user=user)
+                Subscription.objects.create(plans=plans, user=user)
                 return Response({"success": f"{user} successfully subscribed"}, status=status.HTTP_201_CREATED)
             except Exception as error:
                 return Response({"error":str(error)}, status=status.HTTP_400_BAD_REQUEST)
