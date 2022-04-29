@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath heliumx.wsgi
+web: gunicorn --pythonpath heliumx heliumx.wsgi
