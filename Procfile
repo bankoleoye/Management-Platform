@@ -1,1 +1,1 @@
-web: gunicorn -c 'cd ./heliumx/ && heliumx.wsgi'
+web: gunicorn --pythonpath heliumx.heliumx.wsgi
