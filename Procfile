@@ -1,1 +1,1 @@
-web: gunicorn heliumx/heliumx.wsgi
+web: gunicorn ./heliumx.wsgi
