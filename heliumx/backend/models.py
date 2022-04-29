@@ -13,8 +13,9 @@ class UserManager(BaseUserManager):
             raise ValueError('Email must be set!')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        print(password)
         user.set_password(password)
-        user.save(using=self._db)
+        user.save()
         return user
 
     def create_superuser(self, email, password, **extra_fields):
@@ -24,6 +25,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_admin', True)
+        extra_fields.setdefault('duties', 'CEO')
         if extra_fields.get('is_staff') is not True:
             raise ValueError(('Superuser must have is_staff=True.'))
         if extra_fields.get('is_superuser') is not True:
@@ -45,13 +47,14 @@ class User(AbstractUser):
 
 
     duties = models.CharField(choices=DUTIES, max_length=29, default='user')
-    mobile_number = models.CharField(max_length=10, unique=True, default=0)
+    mobile_number = models.CharField(max_length=15, unique=True, default=0)
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255, unique=True)
-    password = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    is_staff = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -61,7 +64,7 @@ class User(AbstractUser):
 class Sessions(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=70)
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField()
     booking_date = models.DateTimeField(auto_now_add=True)
     is_booked = models.BooleanField(default=False)
     description = models.CharField(max_length=255, default=False)
@@ -83,7 +86,7 @@ class Ticket(models.Model):
 class Subscription(models.Model):
     PLANS = (
         ('Basic', 'Basic'),
-        ('Premium', 'Prmium')
+        ('Premium', 'Premium')
     )
 
     title = models.CharField(max_length=70)
@@ -95,9 +98,8 @@ def __str__(self):
     return self.title
 
 class NewsLetter(models.Model):
-    title = models.CharField(max_length=40)
-    topic = models.CharField(max_length=90)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=40, null=True)
+    topic = models.CharField(max_length=90, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now_add=True, null=True)
 
